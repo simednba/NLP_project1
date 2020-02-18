@@ -40,9 +40,9 @@ def loadPairs(path):
 
 class SkipGram:
     def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize = 5, minCount = 5):
-        self.w2id = {} # word to ID mapping
+        self.w2id = create_w2id_map(sentences) # word to ID mapping
         self.trainset = set(sentences) # set of sentences
-        self.vocab = list(set([word for word in sentences])) # list of valid words
+		self.vocab = list(self.w2id.keys()) # list of valid words
         self.n = nEmbed
         self.n_neg = negativeRate
         self.winsize = winSize
@@ -51,9 +51,19 @@ class SkipGram:
         self.w2 = np.random.uniform(-1, 1, (self.n, len(self.vocab)))
         
 
-    def sample(self, omit):
-        """samples negative words, ommitting those in set omit"""
-        raise NotImplementedError('this is easy, might want to do some preprocessing to speed up')
+	def sample(self, omit):
+		"""samples negative words, ommitting those in set omit"""
+
+		# To do : add unigram model sampling (**3/4)
+		n = len(self.vocab)
+		neg_sample_idxs = []
+		for i in range(self.n_neg):
+			neg_sample_idx = np.random.randint(n)
+			while neg_sample_idx in omit :
+				neg_sample_idx = np.random.randint(n)
+			neg_sample_idxs.append(neg_sample_idx)
+
+		return neg_sample_idxs
 
     def train(self):
         #TODO : cycle throught each epoch
@@ -85,12 +95,9 @@ class SkipGram:
   		one_hot[word_index] = 1
   		return one_hot
 
-    def trainWord(self, wordId, contextId, negativeIds):
-        	
 
-	def train(self, training_data):
+	def trainWord(self, training_data):
 
-		
 		# Cycle through each epoch
 		for i in range(self.epochs):
 			# Intialise loss to 0
@@ -171,6 +178,16 @@ class SkipGram:
 	@staticmethod
 	def load(path):
 		raise NotImplementedError('implement it!')
+        
+def create_w2id_map(sentences):
+	w2id = {}
+	id = 0
+	for sentence in sentences :
+		for token in sentence :
+			if token not in w2id.keys():
+				w2id[token]=id
+				id +=1
+	return w2id
 
 if __name__ == '__main__':
 

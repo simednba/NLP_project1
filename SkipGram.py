@@ -18,11 +18,12 @@ from sklearn.preprocessing import normalize
 
 spacy_nlp = spacy.load("en_core_web_sm")
 
-__authors__ = ['author1','author2','author3']
-__emails__  = ['fatherchristmoas@northpole.dk','toothfairy@blackforest.no','easterbunny@greenfield.de']
+__authors__ = ['Hammouch Ouassim','El Hajji Mohamed','author3']
+__emails__  = ['mohamed.el-hajji@student.ecp.fr','toothfairy@blackforest.no','easterbunny@greenfield.de']
 
 def text2sentences(sentences):
 	# feel free to make a better tokenization/pre-processing
+    
     processed_sentences = []
     for sentence in sentences:
         string = sentence.lower()

@@ -18,8 +18,8 @@ from sklearn.preprocessing import normalize
 
 spacy_nlp = spacy.load("en_core_web_sm")
 
-__authors__ = ['Hammouch Ouassim','El Hajji Mohamed','author3']
-__emails__  = ['mohamed.el-hajji@student.ecp.fr','toothfairy@blackforest.no','easterbunny@greenfield.de']
+__authors__ = ['Hammouch Ouassim','El Hajji Mohamed','POKALA Sai Deepesh', 'de BROGLIE Philibert']
+__emails__  = ['mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
 
 def text2sentences(sentences):
 	# feel free to make a better tokenization/pre-processing
@@ -212,6 +212,3 @@ if __name__ == '__main__':
 		for a,b,_ in pairs:
             # make sure this does not raise any exception, even if a or b are not in sg.vocab
 			print(sg.similarity(a,b))
-
-skipGram.py
-Affichage de skipGram.py

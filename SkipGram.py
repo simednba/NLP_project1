@@ -43,7 +43,7 @@ class SkipGram:
     def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize = 5, minCount = 5):
         self.w2id = create_w2id_map(sentences) # word to ID mapping
         self.trainset = set(sentences) # set of sentences
-		self.vocab = list(self.w2id.keys()) # list of valid words
+        self.vocab = list(set(self.w2id.keys())) # list of valid words
         self.n = nEmbed
         self.n_neg = negativeRate
         self.winsize = winSize
@@ -55,7 +55,7 @@ class SkipGram:
 	def sample(self, omit):
 		"""samples negative words, ommitting those in set omit"""
 
-		# To do : add unigram model sampling (**3/4)
+		#TODO : add unigram model sampling (**3/4)
 		n = len(self.vocab)
 		neg_sample_idxs = []
 		for i in range(self.n_neg):
@@ -125,7 +125,7 @@ class SkipGram:
 
 				# Backpropagation
 				# We use SGD to backpropagate errors - calculate loss on the output layer 
-				self.backprop(EI, h, w_t)
+				self.backward(EI, h, w_t)
 				#########################################
 				#print("W1-after backprop", self.w1)	#
 				#print("W2-after backprop", self.w2)	#
@@ -145,18 +145,30 @@ class SkipGram:
 				#############################################################
 			print('Epoch:', i, "Loss:", self.loss)
 
+
+
 	def forward(self, x):
-		out1 = np.dot(x, self.w1)
-		out2 = np.dot(out1, self.w2)
-		preds = self.softmax(out2)
-		return preds, out1, out2
+		embedding = np.dot(x, self.w1)
+		pred = np.dot(embedding, self.w2)
+		proba = self.softmax(pred)
+		return proba, embedding, pred
     
     def softmax(self, x):
-        interm = np.exp(x)
+        interm = np.exp(x-max(x))
         return interm / interm.sum(axis=0)
     
 
-	def backward(self, error, out1, x):
+	def backward(self, error, proba, x):
+        g = ((proba - y) / x.shape[0]).astype(np.float16)  # Shape (-1, vocab_size)
+        grad_w2 = self.h.T.dot(g).astype(np.float16)  # Shape (embed_dim, vocab_size)
+
+        g = g.dot(self.w2.T).astype(np.float16)  # Shape (-1, embed_dim)
+        grad_w1 = x.T.dot(g).astype(np.float16)  # Shape (vocab_size, embed_dim)
+
+        grad_w1 = np.clip(grad_w1, 0.01, 20).astype(np.float16)
+        grad_w2 = np.clip(grad_w2, 0.01, 20).astype(np.float16)
+        
+        
         grad_1 = np.array([[i*j for j in error] for i in out1])
         grad_2 = np.array([[i*j for j in np.dot(self.w2,error.transpose())] for i in x])
 		self.w1 = self.w1 - (self.lr * grad_2)

@@ -50,6 +50,7 @@ class SkipGram:
         self.mincount = minCount
         self.w1 = np.random.uniform(-1, 1, (len(self.vocab), self.n))
         self.w2 = np.random.uniform(-1, 1, (self.n, len(self.vocab)))
+        self.loss = []
         
 
 	def sample(self, omit):
@@ -97,55 +98,30 @@ class SkipGram:
   		return one_hot
 
 
-	def trainWord(self, training_data):
+    def trainword(self, neg_ids, context_id,target_id):
+        self.loss = 0
+        proba, embeddings, predictions = self.forward_pass(w_t)
+        self.loss= -np.log(self.sigmoid(np.dot(predictions[:,context_id].T,embeddings[:,context_id])))
+        for id_ in neg_ids:
+            self.loss -=np.log(self.sigmoid(np.dot(predictions[:,id_].T,embeddings[:,id_])))
+        self.accLoss+= self.loss
+        all_ids = [id_ for id_ in neg_ids]
+        all_ids.append(context_id)
+        w1_grad = 0
+        for index,id_ in enumerate(all_ids):
+            tj = 0
+            if index == len(all_ids)-1:
+                tj = 1
+            self.w2[:, id_] -= self.lr*(self.sigmoid(np.dot(predictions[:,id_], embeddings))-tj)*embeddings
+            w1_grad += (self.sigmoid(np.dot(predictions[:,id_],embeddings))-tj)*predictions[:,id_]
+        self.w1[target_id, :] -= self.lr*w1_grad
+        
+        
+        
 
-		# Cycle through each epoch
-		for i in range(self.epochs):
-			# Intialise loss to 0
-			self.loss = 0
-			# Cycle through each training sample
-			# w_t = vector for target word, w_c = vectors for context words
-			for w_t, w_c in training_data:
-				# Forward pass
-				# 1. predicted y using softmax (y_pred) 2. matrix of hidden layer (h) 3. output layer before softmax (u)
-				y_pred, h, u = self.forward_pass(w_t)
-				#########################################
-				# print("Vector for target word:", w_t)	#
-				# print("W1-before backprop", self.w1)	#
-				# print("W2-before backprop", self.w2)	#
-				#########################################
-
-				# Calculate error
-				# 1. For a target word, calculate difference between y_pred and each of the context words
-				# 2. Sum up the differences using np.sum to give us the error for this particular target word
-				EI = np.sum([np.subtract(y_pred, word) for word in w_c], axis=0)
-				#########################
-				# print("Error", EI)	#
-				#########################
-
-				# Backpropagation
-				# We use SGD to backpropagate errors - calculate loss on the output layer 
-				self.backward(EI, h, w_t)
-				#########################################
-				#print("W1-after backprop", self.w1)	#
-				#print("W2-after backprop", self.w2)	#
-				#########################################
-
-				# Calculate loss
-				# There are 2 parts to the loss function
-				# Part 1: -ve sum of all the output +
-				# Part 2: length of context words * log of sum for all elements (exponential-ed) in the output layer before softmax (u)
-				# Note: word.index(1) returns the index in the context word vector with value 1
-				# Note: u[word.index(1)] returns the value of the output layer before softmax
-				self.loss += -np.sum([u[word.index(1)] for word in w_c]) + len(w_c) * np.log(np.sum(np.exp(u)))
-				
-				#############################################################
-				# Break if you want to see weights after first target word 	#
-				# break 													#
-				#############################################################
-			print('Epoch:', i, "Loss:", self.loss)
-
-
+    @staticmethod
+    def sigmoid(x):
+        return 1/(1+np.exp(-x))
 
 	def forward(self, x):
 		embedding = np.dot(x, self.w1)
@@ -185,9 +161,12 @@ class SkipGram:
 		:param word2:
 		:return: a float \in [0,1] indicating the similarity (the higher the more similar)
 		"""
+        
 		try:
-			word1_emb = final_dict[word1]
-			word2_emb = final_dict[word2]
+			#word1_emb = final_dict[word1]
+            _,word1_emb,_ = self.forward(word1)
+            _,word2_emb,_ = self.forward(word2)
+			#word2_emb = final_dict[word2]
 		except KeyError:
 			return -1
 

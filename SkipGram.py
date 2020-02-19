@@ -185,8 +185,11 @@ class SkipGram:
 		:param word2:
 		:return: a float \in [0,1] indicating the similarity (the higher the more similar)
 		"""
-		word1_emb = self.w2id[word1]
-		word2_emb = self.w2id[word2]
+		try:
+			word1_emb = final_dict[word1]
+			word2_emb = final_dict[word2]
+		except KeyError:
+			return -1
 
 		return np.dot(word1_emb, word2_emb) / (np.linalg.norm(word1_emb) * np.linalg.norm(word2_emb))
 

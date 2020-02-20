@@ -5,7 +5,7 @@ Created on Fri Feb 14 15:33:40 2020
 @author: simed
 """
 
-
+#%%
 from __future__ import division
 import argparse
 import pandas as pd
@@ -25,6 +25,7 @@ __emails__  = ['mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.f
 
 sentences = ["Elk calling -- a skill that hunters perfected long ago to lure game with the promise of a little romance -- is now its own sport .Don 't !",
 			 "Fish , ranked 98th in the world , fired 22 aces en route to a 6-3 , 6-7 ( 5 / 7 ) , 7-6 ( 7 / 4 ) win over seventh-seeded Argentinian David Nalbandian ."]
+sentences = sentences*150000
 
 def text2sentences(sentences):
 	# feel free to make a better tokenization/pre-processing
@@ -46,9 +47,21 @@ def loadPairs(path):
 	pairs = zip(data['word1'],data['word2'],data['similarity'])
 	return pairs
 
+def create_w2id_map(sentences):
+	w2id = {}
+	id = 0
+	for sentence in sentences :
+		for token in sentence :
+			if token not in w2id.keys():
+				w2id[token]=id
+				id +=1
+	return w2id
 
+#%%
+
+self = SkipGram()
 class SkipGram:
-	def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize = 5, minCount = 5):
+	def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize = 5, minCount = 5, lr = 0.05, clip_value = 10, display_rate = 100):
 		self.w2id = create_w2id_map(sentences) # word to ID mapping
 		self.trainset = sentences # set of sentences
 		self.vocab = list(set(self.w2id.keys())) # list of valid words
@@ -56,14 +69,15 @@ class SkipGram:
 		self.n_neg = negativeRate
 		self.winSize = winSize
 		self.mincount = minCount
-		self.w1 = np.random.uniform(-1, 1, (len(self.vocab), self.n))
-		self.w2 = np.random.uniform(-1, 1, (self.n, len(self.vocab)))
+		self.C = np.random.uniform(-1, 1, (len(self.vocab), self.n))
+		self.W = np.random.uniform(-1, 1, (self.n, len(self.vocab)))
 		self.loss = []
 		self.accLoss = 0
-		self.lr = 0.05
+		self.lr = lr
 		self.trainWords = 0
-
-
+		self.norms = {"W":[], "C":[]}
+		self.clip_value = clip_value
+		self.display_rate = display_rate
 
 	def sample(self, omit):
 		"""samples negative words, ommitting those in set omit"""
@@ -88,6 +102,7 @@ class SkipGram:
 	def train(self):
 		#TODO : cycle throught each epoch
 		for counter, sentence in enumerate(self.trainset):
+
 			sentence = list(filter(lambda word: word in self.vocab, sentence))
 
 			for wpos, word in enumerate(sentence):
@@ -101,14 +116,29 @@ class SkipGram:
 					if ctxtId == wIdx: continue
 					negativeIds = self.sample({wIdx, ctxtId})
 					self.trainWord(wIdx, ctxtId, negativeIds)
+					# print(f"Trained ({word},{context_word})")
 					self.trainWords += 1
 
-			if counter % 1 == 0:
+			if counter % self.display_rate == 0:
 				print (' > training %d of %d' % (counter, len(self.trainset)))
 				# self.loss.append(self.accLoss / self.trainWords)
-				print(f"Loss : {self.accLoss / self.trainWords}")
+				self.norms["W"].append(np.linalg.norm(self.W))
+				self.norms["C"].append(np.linalg.norm(self.C))
+
+				# man = sg.W[:, sg.w2id["man"]]
+				# woman = sg.W[:, sg.w2id["woman"]]
+				# king = sg.W[:, sg.w2id["king"]]
+				# queen = sg.W[:, sg.w2id["queen"]]
+				cosine = 0
+				# cosine = np.dot((man - woman), (king - queen)) / (np.linalg.norm(man - woman) * np.linalg.norm(king - queen))
+
+				print(f"Loss : {self.accLoss / self.trainWords} | cosine : {cosine}")
 				self.trainWords = 0
 				self.accLoss = 0.
+
+				# Save regularly in case the code crashes
+				save_path = f"./train_{counter}"
+				self.save(save_path)
 
 	def get_one_hot_from_string(self, word):
 		one_hot = np.zeros(len(self.vocab))
@@ -119,45 +149,36 @@ class SkipGram:
 
 	def trainWord(self, target_id, context_id, neg_ids):
 		self.loss = 0
-		w_t = np.array([0]*len(self.vocab))
-		w_t[target_id] = 1
-		proba, embeddings, predictions = self.forward(w_t)
-		self.loss= -np.log(self.sigmoid(np.dot(predictions.T,w_t)))
-		for id_ in neg_ids:
-			w_c = np.array([0]*len(self.vocab))
-			w_c[id_] = 1
-			self.loss -=np.log(self.sigmoid(-np.dot(predictions.T,w_c)))
-		self.accLoss+= self.loss
-		all_ids = [id_ for id_ in neg_ids]
-		all_ids.append(context_id)
-		w1_grad = 0
-		for index,id_ in enumerate(all_ids):
-			tj = 0
-			if index == len(all_ids)-1:
-				tj = 1
-			w_c = np.array([0]*len(self.vocab))
-			w_c[id_] = 1
-		# 	self.w2[id_, :] -= self.lr * (self.sigmoid(np.dot(predictions, w_c)) - tj) * w_c
-		# 	w1_grad += (self.sigmoid(np.dot(predictions, w_t)) - tj) * predictions
-		# self.w1[:, target_id] -= self.lr * w1_grad
-			self.w2[:, id_] -= self.lr*(self.sigmoid(np.dot(predictions, w_c))-tj)*embeddings
-			w1_grad += (self.sigmoid(np.dot(predictions,w_t))-tj)*predictions
-		self.w1[ :, target_id] -= self.lr*w1_grad
+		dw = 0
 
+		w_t = self.W[:,target_id]
+		c_p = self.C[context_id,:]
+		self.loss -= np.log(self.sigmoid(np.dot(w_t,c_p)))
+		# Updates
+		dcp = np.clip(self.sigmoid(-1*np.dot(w_t,c_p)), -1*self.clip_value, self.clip_value)
+		self.C[context_id, :] = self.C[context_id,:] + self.lr*dcp*w_t
+		dw += dcp*c_p
 
+		for neg_id in neg_ids:
+			c_n = self.C[neg_id, :]
+			self.loss -= np.log(self.sigmoid(-1*np.dot(w_t,c_n)))
+		# 	 Updates
+			dcn = np.clip(self.sigmoid(np.dot(w_t, c_n)), -1*self.clip_value, self.clip_value)
+			self.C[neg_id, :] = self.C[neg_id, :] - self.lr * dcn * w_t
+			dw -= dcn*c_n
+
+		self.W[:, target_id] += self.lr*np.clip(dw, -1*self.clip_value, self.clip_value)
+		self.accLoss += self.loss
+
+		# print(f"dcp = {dcp} | dw = {np.linalg.norm(dw)}")
 
 	@staticmethod
 	def sigmoid(x):
 		return 1/(1+np.exp(-x))
 
-
-
 	def softmax(self, x):
 		interm = np.exp(x-max(x))
 		return interm / interm.sum(axis=0)
-
-
-
 
 	def save(self,path):
 		raise NotImplementedError('implement it!')
@@ -172,27 +193,21 @@ class SkipGram:
 
 		try:
 			#word1_emb = final_dict[word1]
-			_,word1_emb,_ = self.forward(word1)
-			_,word2_emb,_ = self.forward(word2)
+			id_1, id_2 = self.w2id[word1], self.w2id[word2]
+			emb1 = self.W[:, id_1]
+			emb2 = self.W[:, id_2]
+			#_,word1_emb,_ = self.forward(word1)
+			#_,word2_emb,_ = self.forward(word2)
 			#word2_emb = final_dict[word2]
 		except KeyError:
 			return -1
 
-		return np.dot(word1_emb, word2_emb) / (np.linalg.norm(word1_emb) * np.linalg.norm(word2_emb))
+		return np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
 
 	@staticmethod
 	def load(path):
 		raise NotImplementedError('implement it!')
 
-def create_w2id_map(sentences):
-	w2id = {}
-	id = 0
-	for sentence in sentences :
-		for token in sentence :
-			if token not in w2id.keys():
-				w2id[token]=id
-				id +=1
-	return w2id
 
 if __name__ == '__main__':
 
@@ -208,14 +223,19 @@ if __name__ == '__main__':
 			sentences = f.readlines()
 		sentences = [sentence.rstrip('\n') for sentence in sentences]
 		sentences_ = text2sentences(sentences)
-		sg = SkipGram(sentences_)
+		sg = SkipGram(sentences_, lr=0.0005, display_rate=50)
 		sg.train()
 		sg.save(opts.model)
 
 	else:
-		pairs = loadPairs(opts.text)
+		testPath = "C:\\Users\\User\Documents\GitHub\\NLP_project1\EN-SIMLEX-999.txt"
+		# pairs = loadPairs(opts.text)
+		pairs = loadPairs(testPath)
 
 		sg = SkipGram.load(opts.model)
 		for a,b,_ in pairs:
 			# make sure this does not raise any exception, even if a or b are not in sg.vocab
 			print(sg.similarity(a,b))
+
+
+

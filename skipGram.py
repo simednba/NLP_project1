@@ -10,7 +10,8 @@ from __future__ import division
 import argparse
 import pandas as pd
 import re
-
+import os
+import pickle as pkl
 # useful stuff
 import spacy
 import numpy as np
@@ -18,7 +19,7 @@ from scipy.special import expit
 from sklearn.preprocessing import normalize
 from stopwords import stop_words
 
-path = "C:\\Users\\User\Documents\GitHub\\NLP_project1\\news.en-00001-of-00100"
+path = "/Users/philibert/Documents/NLP_project1	"
 
 __authors__ = ['Hammouch Ouassim','El Hajji Mohamed','POKALA Sai Deepesh', 'de BROGLIE Philibert']
 __emails__  = ['mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
@@ -59,7 +60,7 @@ def create_w2id_map(sentences):
 
 #%%
 
-self = SkipGram()
+#self = SkipGram()
 class SkipGram:
 	def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize = 5, minCount = 5, lr = 0.05, clip_value = 10, display_rate = 100):
 		self.w2id = create_w2id_map(sentences) # word to ID mapping
@@ -102,7 +103,7 @@ class SkipGram:
 	def train(self):
 		#TODO : cycle throught each epoch
 		for counter, sentence in enumerate(self.trainset):
-
+			self.trainWords += 1
 			sentence = list(filter(lambda word: word in self.vocab, sentence))
 
 			for wpos, word in enumerate(sentence):
@@ -117,7 +118,7 @@ class SkipGram:
 					negativeIds = self.sample({wIdx, ctxtId})
 					self.trainWord(wIdx, ctxtId, negativeIds)
 					# print(f"Trained ({word},{context_word})")
-					self.trainWords += 1
+					#self.trainWords += 1
 
 			if counter % self.display_rate == 0:
 				print (' > training %d of %d' % (counter, len(self.trainset)))
@@ -131,14 +132,15 @@ class SkipGram:
 				# queen = sg.W[:, sg.w2id["queen"]]
 				cosine = 0
 				# cosine = np.dot((man - woman), (king - queen)) / (np.linalg.norm(man - woman) * np.linalg.norm(king - queen))
-
+				print(self.trainWords)
 				print(f"Loss : {self.accLoss / self.trainWords} | cosine : {cosine}")
+
 				self.trainWords = 0
 				self.accLoss = 0.
 
 				# Save regularly in case the code crashes
-				save_path = f"./train_{counter}"
-				self.save(save_path)
+				#save_path = f"./train_{counter}"
+				#self.save(save_path)
 
 	def get_one_hot_from_string(self, word):
 		one_hot = np.zeros(len(self.vocab))
@@ -180,8 +182,12 @@ class SkipGram:
 		interm = np.exp(x-max(x))
 		return interm / interm.sum(axis=0)
 
-	def save(self,path):
-		raise NotImplementedError('implement it!')
+	def save(self, path):
+		# path is a directory, not the full path of the file
+		with open(path, "wb") as f:
+			pkl.dump(self.W, f)
+		print(f"Saved model to {path} successfully")
+
 
 	def similarity(self,word1,word2):
 		"""
@@ -206,7 +212,9 @@ class SkipGram:
 
 	@staticmethod
 	def load(path):
-		raise NotImplementedError('implement it!')
+		with open(path, "rb") as f:
+			W = pkl.load(f)
+		print(f"Loaded model from {path} successfully")
 
 
 if __name__ == '__main__':
@@ -219,23 +227,18 @@ if __name__ == '__main__':
 	opts = parser.parse_args()
 
 	if not opts.test:
-		with open(path, 'r', encoding="utf8") as f :
-			sentences = f.readlines()
-		sentences = [sentence.rstrip('\n') for sentence in sentences]
-		sentences_ = text2sentences(sentences)
-		sg = SkipGram(sentences_, lr=0.0005, display_rate=50)
+		sentences = text2sentences(opts.text)
+		sg = SkipGram(sentences)
 		sg.train()
 		sg.save(opts.model)
 
 	else:
-		testPath = "C:\\Users\\User\Documents\GitHub\\NLP_project1\EN-SIMLEX-999.txt"
-		# pairs = loadPairs(opts.text)
-		pairs = loadPairs(testPath)
-
-		sg = SkipGram.load(opts.model)
-		for a,b,_ in pairs:
+		pairs = loadPairs(opts.text)
+		sg = SkipGram([])
+		sg.load(opts.model)
+		for a, b, _ in pairs:
 			# make sure this does not raise any exception, even if a or b are not in sg.vocab
-			print(sg.similarity(a,b))
+			print(sg.similarity(a, b))
 
 
 

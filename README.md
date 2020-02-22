@@ -1,4 +1,4 @@
-#Assignment 1 - SkipGram Implementation with Negative Sampling
+# Assignment 1 - SkipGram Implementation with Negative Sampling
 
 Authors: Hammouch Ouassim, El Hajji Mohamed, POKALA Sai Deepesh, de BROGLIE Philibert
 

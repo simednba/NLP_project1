@@ -39,9 +39,7 @@ The loss is defined as:
 
 where ![equation](https://latex.codecogs.com/gif.latex?%5Cmathbf%7Bw%7D_%7Bt%7D%2C%20%5Cmathbf%7Bc%7D_%7Bt%7D) are the ![equation](https://latex.codecogs.com/gif.latex?%24t%5E%7B%5Ctext%20%7Bth%20%7D%7D%24) column of W and the ![equation](https://latex.codecogs.com/gif.latex?%24t%5E%7B%5Ctext%20%7Bth%20%7D%7D%24) row of C. 
 
-t: target word
-p: positive (context) word
-n: negative word
+where t, c, p, n are used to denote a target word, a word in the target word's context, a positive sample (word belongs to the context) and a negative sample (word do not belong to the context) respectively.
 
 The positive words (context words) are denoted by the ‘+’, and the negatives ones by the ‘-’. The higher the result of the dot product between two words vectors, the more similar they are to each other. Hence, the target word and i is, the more similar or closer the two vectors are together. The use of the logistic function transforms this dot product into a probability. Hence for positive words the goal is to maximise this 1/1+exp(−wtTcp) so having a large dot product between wtTcpand this is done by minimising the negative log of this . 
 
@@ -50,13 +48,11 @@ Additionally the goal is to minimise the similarity of target and negative words
 To do so, stochastic gradient descent is then implemented. 
 The loss partial derivatives can be calculated as follows:
 
-![equation](https://latex.codecogs.com/gif.latex?s_%7Bp%7D%3D%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bp%7D%5Cright%29%7D)
+![equation](https://latex.codecogs.com/gif.latex?%5Cbegin%7Baligned%7D%20%26%5Cfrac%7B%5Cpartial%20L_%7B%28t%2C%20p%29%7D%7D%7B%5Cpartial%20%5Cmathbf%7Bw%7D_%7Bt%7D%7D%3D-s_%7Bp%7D%20%5Cmathbf%7Bc%7D_%7Bp%7D&plus;%5Csum_%7Bn%20%5Cin%20%5Cmathcal%7BN%7D%28t%2C%20p%29%7D%20s_%7Bn%7D%20%5Cmathbf%7Bc%7D_%7Bn%7D%5C%5C%20%26%5Cfrac%7B%5Cpartial%20L_%7B%28t%2C%20p%29%7D%7D%7B%5Cpartial%20%5Cmathbf%7Bc%7D_%7Bp%7D%7D%3D-s_%7Bp%7D%20%5Cmathbf%7Bw%7D_%7Bt%7D%5C%5C%20%26%5Cfrac%7B%5Cpartial%20L_%7B%28t%2C%20p%29%7D%7D%7B%5Cpartial%20%5Cmathbf%7Bc%7D_%7Bn%7D%7D%3Ds_%7Bn%7D%20%5Cmathbf%7Bw%7D_%7Bt%7D%20%5Cquad%20%5Cforall%20n%20%5Cin%20%5Cmathcal%7BN%7D%28t%2C%20p%29%20%5Cend%7Baligned%7D)
 
-dL/dwt = -1/1+exp(wtTcp) * cp + ∑(n) 1/1+exp(-wtTcn) * cn
+where ![equation](https://latex.codecogs.com/gif.latex?s_%7Bp%7D%3D%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bp%7D%5Cright%29%7D) and ![equation](https://latex.codecogs.com/gif.latex?s_%7Bn%7D%3D%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28-%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bn%7D%5Cright%29%7D)
 
-dL/dcp = -1/1+exp(wtTcp) * wt
-
-dL/dcn = 1/1+exp(-wtTcn) * wt
+### Optimisation
 
 With those derivates the SGD can be applied as follow with stepsize  α :
 

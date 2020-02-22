@@ -1,10 +1,9 @@
 # Assignment 1 - SkipGram Implementation with Negative Sampling
 
-Authors: Hammouch Ouassim, El Hajji Mohamed, POKALA Sai Deepesh, de BROGLIE Philibert
+### Authors: Hammouch Ouassim, El Hajji Mohamed, POKALA Sai Deepesh, de BROGLIE Philibert
 
-This exercise, is an attempt to create our own word embedding by implementing the skipGram model using numpy library. skipGram is one of the two algorithms cited in the Word2vec paper, used to learn such word embeddings with the CBOW algorithm. skipGram predicts context (or neighbours) words from a centered (or target) one. This mean looking at words around a target one according to a window size, to understand their context, concept etc… 
-Basically, skipGram takes as input the centered word’s one hot encoded vector passes it through the hidden layer made of the weight matrix (the embeddings). Then the same happens to context words and are then inputted to the softmax classifier. The softmax then gives a probability of being a context word or not. 
-In order to reduce computation time negative sampling was implemented and turned out to also increase accuracy, hence will be done here as well. The concept behind negative sampling is to randomly sample words(5-20) from the available vocabulary, which are different from target and context words, and use them for training as examples which should not be outputted with a high probability. Hence context words will be given a probability after softmax of 1 and negative samples of 0.
+This exercise, is an attempt to generate word embeddings by implementing the skipGram model with Negative-Sampling. SkipGram is one of the two algorithms cited in the Word2vec paper, used to learn such word embeddings. SkipGram, essentially, is a fully connected neural-network that takes in a word as input and predicts the most probable context words for that input word. 
+
 
 After going through a few papers and trying out various codes, here is how we implemented the skipGram model.
 
@@ -32,10 +31,13 @@ Training:
 - Train the model by optimizing the loss function
 - Use the regression weights as the embedding vectors
 
-First of all, a target word will be chosen with its context words, then negative words will be randomly sampled and finally all of theses words will then be train to our model. This means that the model is composed of two weights matrices which contains word embeddings, WdVandCVd with d the embedding dimension and V the number of words. Matrix W which will be updated by the target word only, contains the embeddings that will then be used to compute cosine similarity and for word2vec for example. The C matrix will be used to train context and negative words but its embeddings won’t ever be used after training is done.
-The following loss will be used:
+First of all, a target word will be chosen with its context words, then negative words will be randomly sampled and finally all of theses words will then be train to our model. This means that the model is composed of two weights matrices which contains word embeddings, ![equation](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BW%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7Bd%20%5Ctimes%20V%7D%20%5Ctext%20%7B%20and%20%7D%20%5Cmathbf%7BC%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7BV%20%5Ctimes%20d%7D) with d the embedding dimension and V the number of words. Matrix W which will be updated by the target word only, contains the embeddings that will then be used to compute cosine similarity and for word2vec for example. The C matrix will be used to train context and negative words but its embeddings won’t ever be used after training is done.
+
+The loss is defined as:
 
 ![equation](https://latex.codecogs.com/gif.latex?%24%24L%28%5Cboldsymbol%7B%5Ctheta%7D%29%3D%5Csum_%7B%28t%2C%20p%29%20%5Cin&plus;%7D-%5Clog%20%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28-%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bp%7D%5Cright%29%7D&plus;%5Csum_%7B%28t%2C%20n%29%20%5Cin-%7D-%5Clog%20%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bn%7D%5Cright%29%7D%24%24)
+
+where ![equation](https://latex.codecogs.com/gif.latex?%5Cmathbf%7Bw%7D_%7Bt%7D%2C%20%5Cmathbf%7Bc%7D_%7Bt%7D) are the ![equation](https://latex.codecogs.com/gif.latex?%24t%5E%7B%5Ctext%20%7Bth%20%7D%7D%24) column of W and the ![equation](https://latex.codecogs.com/gif.latex?%24t%5E%7B%5Ctext%20%7Bth%20%7D%7D%24) row of C. 
 
 t: target word
 p: positive (context) word
@@ -47,6 +49,8 @@ Additionally the goal is to minimise the similarity of target and negative words
 
 To do so, stochastic gradient descent is then implemented. 
 The loss partial derivatives can be calculated as follows:
+
+![equation](https://latex.codecogs.com/gif.latex?s_%7Bp%7D%3D%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bp%7D%5Cright%29%7D)
 
 dL/dwt = -1/1+exp(wtTcp) * cp + ∑(n) 1/1+exp(-wtTcn) * cn
 

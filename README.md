@@ -27,8 +27,7 @@ Training
 First of all, a target word will be chosen with its context words, then negative words will be randomly sampled and finally all of theses words will then be train to our model. This means that the model is composed of two weights matrices which contains word embeddings, WdVandCVd with d the embedding dimension and V the number of words. Matrix W which will be updated by the target word only, contains the embeddings that will then be used to compute cosine similarity and for word2vec for example. The C matrix will be used to train context and negative words but its embeddings won’t ever be used after training is done.
 The following loss will be used:
 
-$$L(\boldsymbol{\theta})=\sum_{(t, p) \in+}-\log \frac{1}{1+\exp \left(-\mathbf{w}_{t}^{\top} \mathbf{c}_{p}\right)}+\sum_{(t, n) \in-}-\log \frac{1}{1+\exp \left(\mathbf{w}_{t}^{\top} \mathbf{c}_{n}\right)}$$
-
+https://latex.codecogs.com/gif.latex?%24%24L%28%5Cboldsymbol%7B%5Ctheta%7D%29%3D%5Csum_%7B%28t%2C%20p%29%20%5Cin&plus;%7D-%5Clog%20%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28-%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bp%7D%5Cright%29%7D&plus;%5Csum_%7B%28t%2C%20n%29%20%5Cin-%7D-%5Clog%20%5Cfrac%7B1%7D%7B1&plus;%5Cexp%20%5Cleft%28%5Cmathbf%7Bw%7D_%7Bt%7D%5E%7B%5Ctop%7D%20%5Cmathbf%7Bc%7D_%7Bn%7D%5Cright%29%7D%24%24
 
 L(θ)=∑(t,p)∈+−log(1/1+exp(−wtTcp))+∑(t,n)∈-−log(1/1+exp(wtTcn))
 t: target word

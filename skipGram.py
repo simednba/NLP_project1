@@ -22,7 +22,7 @@ from stopwords import stop_words
 path = "/Users/philibert/Documents/NLP_project1	"
 
 __authors__ = ['Hammouch Ouassim','El Hajji Mohamed','POKALA Sai Deepesh', 'de BROGLIE Philibert']
-__emails__  = ['mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
+__emails__  = ['ouassim.hammouch@student.ecp.fr', 'mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
 
 sentences = ["Elk calling -- a skill that hunters perfected long ago to lure game with the promise of a little romance -- is now its own sport .Don 't !",
 			 "Fish , ranked 98th in the world , fired 22 aces en route to a 6-3 , 6-7 ( 5 / 7 ) , 7-6 ( 7 / 4 ) win over seventh-seeded Argentinian David Nalbandian ."]

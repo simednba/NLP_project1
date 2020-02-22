@@ -48,6 +48,7 @@ Additionally the goal is to minimise the similarity of target and negative words
 To do so, stochastic gradient descent is then implemented. 
 The loss partial derivatives can be calculated as follows:
 
+$Latex$
 dL/dwt = -1/1+exp(wtTcp) * cp + ∑(n) 1/1+exp(-wtTcn) * cn
 
 dL/dcp = -1/1+exp(wtTcp) * wt

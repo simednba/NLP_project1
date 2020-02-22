@@ -47,11 +47,7 @@ dL/dcn = 1/1+exp(-wtTcn) * wt
 
 With those derivates the SGD can be applied as follow with stepsize  α :
 
-wt - α * dL/dwt -> wt
-
-cp- α * dL/dcp -> cp
-
-cn - α * dL/dcn -> cn
+![equation](https://latex.codecogs.com/gif.latex?%5Cbegin%7Baligned%7D%20%26%5Cmathbf%7Bw%7D_%7Bt%7D%20%5Cleftarrow%20%5Cmathbf%7Bw%7D_%7Bt%7D-%5Calpha%20%5Cfrac%7B%5Cpartial%20L_%7B%28t%2C%20p%29%7D%7D%7B%5Cpartial%20%5Cmathbf%7Bw%7D_%7Bt%7D%7D%5C%5C%20%26%5Cmathbf%7Bc%7D_%7Bp%7D%20%5Cleftarrow%20%5Cmathbf%7Bc%7D_%7Bp%7D-%5Calpha%20%5Cfrac%7B%5Cpartial%20L_%7B%28t%2C%20p%29%7D%7D%7B%5Cpartial%20%5Cmathbf%7Bc%7D_%7Bp%7D%7D%5C%5C%20%26%5Cmathbf%7Bc%7D_%7Bn%7D%20%5Cleftarrow%20%5Cmathbf%7Bc%7D_%7Bn%7D-%5Calpha%20%5Cfrac%7B%5Cpartial%20L_%7B%28t%2C%20p%29%7D%7D%7B%5Cpartial%20%5Cmathbf%7Bc%7D_%7Bn%7D%7D%20%5Cend%7Baligned%7D)
 
 During the training of each target word, for every context word, our skipGram model samples negatives words and gets the derivatives shown above to compute gradient descent. From there, it changes the weigth matrices W and C and then compute the loss.
  

@@ -15,22 +15,14 @@ import pickle as pkl
 # useful stuff
 import spacy
 import numpy as np
-from scipy.special import expit
-from sklearn.preprocessing import normalize
 from stopwords import stop_words
-
-path = "/Users/philibert/Documents/NLP_project1	"
 
 __authors__ = ['Hammouch Ouassim','El Hajji Mohamed','POKALA Sai Deepesh', 'de BROGLIE Philibert']
 __emails__  = ['ouassim.hammouch@student.ecp.fr', 'mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
 
-sentences = ["Elk calling -- a skill that hunters perfected long ago to lure game with the promise of a little romance -- is now its own sport .Don 't !",
-			 "Fish , ranked 98th in the world , fired 22 aces en route to a 6-3 , 6-7 ( 5 / 7 ) , 7-6 ( 7 / 4 ) win over seventh-seeded Argentinian David Nalbandian ."]
-sentences = sentences*150000
 
 def text2sentences(sentences):
-	# feel free to make a better tokenization/pre-processing
-	spacy_nlp = spacy.load("en_core_web_sm")
+	#spacy_nlp = spacy.load("en_core_web_sm")
 	processed_sentences = []
 	for sentence in sentences:
 		sentence = re.sub(r'[^a-zA-Z_\s\']+', '', sentence) # remove special characters, numbers

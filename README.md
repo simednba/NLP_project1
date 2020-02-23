@@ -2,7 +2,8 @@
 
 ### Authors: Hammouch Ouassim, El Hajji Mohamed, POKALA Sai Deepesh, de BROGLIE Philibert
 
-This exercise, is an attempt to generate word embeddings by implementing the skipGram model with Negative-Sampling. SkipGram is one of the two algorithms cited in the Word2vec paper, used to learn such word embeddings. SkipGram, essentially, is a fully connected neural-network that takes in a word as input and predicts the most probable context words for that input word. 
+This exercise, is an attempt to generate word embeddings by implementing the skipGram model with Negative-Sampling. SkipGram is one of the two algorithms cited in the Word2vec paper, used to learn such word embeddings. SkipGram, essentially, is a fully connected neural-network with one layer that takes in a word as input and predicts the most probable context words for that input word. 
+However, the end use of this network will not be done this way! So, the final goal is to force the model to learn a representation of each word (represented by the value of the neurons of the hidden layer), and then use this representation for other tasks.
 
 
 After going through a few papers and trying out various codes, here is how we implemented the skipGram model.
@@ -11,7 +12,7 @@ After going through a few papers and trying out various codes, here is how we im
 Here as the default paramters you will find when launching the training:
 - Window Size= 5
 - Embeddings size = 100
-- Number of Negative Samples = 5
+- Number of Negative Samples per Positive Sample = 5
 - Learning rate = 5e-2
 
 ## Task pipeline
@@ -21,17 +22,22 @@ Text preprocessing:
 - Read all the lines in the given text file.
 - Remove all special characters and numbers except spaces and apostrophes. We then convert the apostrophes to spaces as that is the standard practice in NLP tasks (explained in the Deep Learning course by Dr. Vincent Lepetit).
 - We then convert all the words in a sentence to lower case and spilt the sentence into a list of words so as to get a list of lists for each text file.
+- We then delete the stop words. We chose to use a list of stop words used by the NLTK library. To do this, we simply defined them in a list.
 - From this data (which is the trainset), we build our vocabulary which is a list of unique words. 
 - The position of each word in this vocab list is the ID of the word that will be used as a pointer to the word in all the matrices that follow. 
+
+For this step, we tried and compared this preprocessing with the one done by spacy, which you will find in the code but commented. We finally preferred to choose Regexp for its flexibility.
 
 Training:
 
 - Obtain positive examples from the neigboring context of a target word, the number of positive examples depends on the window size. 
 - Obtain negative examples by randomly sampling words in the lexicon based on a unigram distribution (which is built using words frequency)
 - Train the model by optimizing the loss function
-- Use the regression weights as the embedding vectors
 
-First of all, a target word will be chosen with its context words, then negative words will be randomly sampled and finally all of theses words will then be train to our model. This means that the model is composed of two weights matrices which contains word embeddings, ![equation](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BW%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7Bd%20%5Ctimes%20V%7D%20%5Ctext%20%7B%20and%20%7D%20%5Cmathbf%7BC%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7BV%20%5Ctimes%20d%7D) with d the embedding dimension and V the number of words. Matrix W which will be updated by the target word only, contains the embeddings that will then be used to compute cosine similarity and for word2vec for example. The C matrix will be used to train context and negative words but its embeddings won’t ever be used after training is done.
+
+First of all, a target word will be chosen with its context words, then negative words will be randomly sampled and finally all of theses words will then be fed to our model. This means that the model is composed of two weights matrices which contains word embeddings, ![equation](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BW%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7Bd%20%5Ctimes%20V%7D%20%5Ctext%20%7B%20and%20%7D%20%5Cmathbf%7BC%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7BV%20%5Ctimes%20d%7D) with d the embedding dimension and V the number of words. Matrix W which will be updated by the target word only, contains the embeddings that will then be used to compute cosine similarity and for word2vec for example. The C matrix will be used to train context and negative words but its embeddings won’t ever be used after training is done.
+
+
 
 The loss is defined as:
 
@@ -43,7 +49,8 @@ where t, c, p, n are used to denote a target word, a word in the target word's c
 
 The positive words (context words) are denoted by the ‘+’, and the negatives ones by the ‘-’. The higher the result of the dot product between two words vectors, the more similar they are to each other. Hence, the target word and i is, the more similar or closer the two vectors are together. The use of the logistic function transforms this dot product into a probability. Hence for positive words the goal is to maximise this 1/1+exp(−wtTcp) so having a large dot product between wtTcpand this is done by minimising the negative log of this . 
 
-Additionally the goal is to minimise the similarity of target and negative words hence to minimise wtTcn hence maximising 1/1+exp(wtTcn)and therefore minimising the negative log of this. This is why this loss is adapted to the skip-gram model using negative sampling as we try to reduce the loss L by varying the matrix W and C coressponding to the embeddings. 
+As stated, the purpose of this training is to train the weights between the input layer and the first hidden layer.
+As the inputs are only one-hot vectors, multiplying the input with the weight matrix only selects a column of this weight matrix. Similarly, the expression of the loss involves only one hot context vector multiplication with the second weight matrix, so in our implementation, we did not use the forward function, but simply selected the rows/columns of interest at each step.
 
 To do so, stochastic gradient descent is then implemented. 
 The loss partial derivatives can be calculated as follows:

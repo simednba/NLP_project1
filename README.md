@@ -47,7 +47,8 @@ where ![equation](https://latex.codecogs.com/gif.latex?%5Cmathbf%7Bw%7D_%7Bt%7D%
 
 where t, c, p, n are used to denote a target word, a word in the target word's context, a positive sample (word belongs to the context) and a negative sample (word do not belong to the context) respectively.
 
-The positive words (context words) are denoted by the ‘+’, and the negatives ones by the ‘-’. The higher the result of the dot product between two words vectors, the more similar they are to each other. Hence, the target word and i is, the more similar or closer the two vectors are together. The use of the logistic function transforms this dot product into a probability. Hence for positive words the goal is to maximise this 1/1+exp(−wtTcp) so having a large dot product between wtTcpand this is done by minimising the negative log of this . 
+Here, only one context word is chosen at a time.
+The positive words (context words) is denoted by the ‘+’, and the negatives ones by the ‘-’. The higher the result of the dot product between two words vectors, the more similar they are to each other. Hence, the target word and i is, the more similar or closer the two vectors are together. The use of the logistic function transforms this dot product into a probability. Hence for positive words the goal is to maximise this 1/1+exp(−wtTcp) so having a large dot product between wtTcpand this is done by minimising the negative log of this . 
 
 As stated, the purpose of this training is to train the weights between the input layer and the first hidden layer,as the inputs are only one-hot vectors, multiplying the input with the weight matrix only selects a column of this weight matrix. Similarly, the expression of the loss involves only one hot context vector multiplication with the second weight matrix, so in our implementation, we did not use the forward function, but simply selected the rows/columns of interest at each step.
 

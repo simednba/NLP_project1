@@ -21,8 +21,32 @@ __authors__ = ['Hammouch Ouassim','El Hajji Mohamed','POKALA Sai Deepesh', 'de B
 __emails__  = ['ouassim.hammouch@student.ecp.fr', 'mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
 
 
-def text2sentences(path):
-    #spacy_nlp = spacy.load("en_core_web_sm")
+def text2sentences(sentences):
+    """
+    extract the sentences in the path and preprocess them
+
+    Parameters
+    ----------
+    sentences : Path of sentences, str
+        
+
+    Returns
+    -------
+    processed_sentences : List
+        A list with preprocessed sentences split in tokens
+    """
+	#spacy_nlp = spacy.load("en_core_web_sm")
+	processed_sentences = []
+	for sentence in sentences:
+		sentence = re.sub(r'[^a-zA-Z_\s\']+', '', sentence) # remove special characters, numbers
+		sentence = [s for s in sentence.lower().replace("'", " ").split() if s not in stop_words]
+		processed_sentences.append(sentence) #all lowercase, replace ' with a space and split at each word
+		#string = sentence.lower()
+		#spacy_tokens = spacy_nlp(string)
+		#lem = spacy.lemmatizer
+		#string_tokens = [token.lemma_ for token in spacy_tokens if not token.is_punct if not token.is_stop if not token.pos_ == 'NUM']
+		#processed_sentences.append(string_tokens)
+	return processed_sentences
 
     with open(path, encoding="utf8") as f:
         sentences = f.readlines()
@@ -42,14 +66,28 @@ def loadPairs(path):
     return pairs
 
 def create_w2id_map(sentences):
-    w2id = {}
-    id = 0
-    for sentence in sentences :
-        for token in sentence :
-            if token not in w2id.keys():
-                w2id[token]=id
-                id +=1
-    return w2id
+    """
+    Create a word to id mapping
+
+    Parameters
+    ----------
+    sentences : List
+           List of preprocessed sentences
+
+    Returns
+    -------
+    w2id : Dict
+        word to id mapping
+
+    """
+	w2id = {}
+	id = 0
+	for sentence in sentences :
+		for token in sentence :
+			if token not in w2id.keys():
+				w2id[token]=id
+				id +=1
+	return w2id
 
 self = SkipGram()
 
@@ -86,16 +124,42 @@ class SkipGram:
 
         return neg_sample_idxs
 
-    def forward(self, x):
-        embedding = np.dot(x, self.w1)
-        pred = np.dot(embedding, self.w2)
-        proba = self.softmax(pred)
-        return proba, embedding, pred
+	def forward(self, x):
+        """
+	    Performs the forward pass of a neural network, not used
 
-    def train(self):
-        for counter, sentence in enumerate(self.trainset):
-            self.trainWords += 1
-            sentence = list(filter(lambda word: word in self.vocab, sentence))
+	    Parameters
+	    ----------
+	    x : np.array
+	        data to perform the forward pass
+
+	    Returns
+	    -------
+	    proba : array
+	        The probabilities after the softmax layer
+	    embedding : array
+	        The hidden layer ( word embeddings)
+	    pred : array
+	        The output of the network before the sofrtmax layer
+
+	    """
+		embedding = np.dot(x, self.w1)
+		pred = np.dot(embedding, self.w2)
+		proba = self.softmax(pred)
+		return proba, embedding, pred
+
+	def train(self):
+        """
+	    Train the skipgram model
+
+	    Returns
+	    -------
+	    None.
+
+	    """
+		for counter, sentence in enumerate(self.trainset):
+			self.trainWords += 1
+			sentence = list(filter(lambda word: word in self.vocab, sentence))
 
             for wpos, word in enumerate(sentence):
                 wIdx = self.w2id[word]
@@ -132,23 +196,49 @@ class SkipGram:
                 #save_path = f"./train_{counter}"
                 #self.save(save_path)
 
-    def get_one_hot_from_string(self, word):
-        one_hot = np.zeros(len(self.vocab))
-        word_index = self.w2id[word]
-        one_hot[word_index] = 1
-        return one_hot
+	def get_one_hot_from_string(self, word):
+        """
+	    Get the one hot vector corresponding to word
+
+	    Parameters
+	    ----------
+	    word : str
+	        a word of the vocabulary
+	    Returns
+	    -------
+	    one_hot : array
+	        One hot vector of the word
+
+	    """
+		one_hot = np.zeros(len(self.vocab))
+		word_index = self.w2id[word]
+		one_hot[word_index] = 1
+		return one_hot
 
     def trainWord(self, target_id, context_id, neg_ids):
         self.loss = 0
         dw = 0
 
-        w_t = self.W[:,target_id]
-        c_p = self.C[context_id,:]
-        self.loss -= np.log(self.sigmoid(np.dot(w_t,c_p)))
-        # Updates
-        dcp = np.clip(self.sigmoid(-1*np.dot(w_t,c_p)), -1*self.clip_value, self.clip_value)
-        self.C[context_id, :] = self.C[context_id,:] + self.lr*dcp*w_t
-        dw += dcp*c_p
+	def trainWord(self, target_id, context_id, neg_ids):
+        """
+	    Train the model on a batch of  words
+
+	    Parameters
+	    ----------
+	    target_id : int
+	        id of the target word
+	    context_id : int
+	        id of the context word
+	    neg_ids : int
+	        ids of the negative words
+
+	    Returns
+	    -------
+	    None.
+
+	    """
+		self.loss = 0
+		dw = 0
 
         for neg_id in neg_ids:
             c_n = self.C[neg_id, :]
@@ -175,13 +265,23 @@ class SkipGram:
         print(f"Saved model to {path} successfully")
 
 
-    def similarity(self,word1,word2):
+	def save(self, path):
         """
-            computes similiarity between the two words. unknown words are mapped to one common vector
-        :param word1:
-        :param word2:
-        :return: a float \in [0,1] indicating the similarity (the higher the more similar)
-        """
+	    Save the embedding matrix on the disk
+
+	    Parameters
+	    ----------
+	    path : str
+	        The path to the file which will contain the data.
+
+	    Returns
+	    -------
+	    None.
+
+	    """
+		with open(path, "wb") as f:
+			pkl.dump(self.W, f)
+		print(f"Saved model to {path} successfully")
 
         try:
             #word1_emb = final_dict[word1]
@@ -194,7 +294,13 @@ class SkipGram:
         except KeyError:
             return -1
 
-        return np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
+	def similarity(self,word1,word2):
+		"""
+		computes similiarity between the two words. unknown words are mapped to one common vector
+		:param word1: str
+		:param word2: str
+		:return: a float \in [0,1] indicating the similarity (the higher the more similar)
+		"""
 
     @staticmethod
     def load(path):
@@ -203,7 +309,24 @@ class SkipGram:
         print(f"Loaded model from {path} successfully")
 
 
-if __name__ == '__main__':
+	
+	def load(self,path):
+        """
+	    Load the saved embedding matrix inoto the model
+
+	    Parameters
+	    ----------
+	    path : str
+	        The path for the file.
+
+	    Returns
+	    -------
+	    None.
+
+	    """
+		with open(path, "rb") as f:
+			self.W = pkl.load(f)
+		print(f"Loaded model from {path} successfully")
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--text', help='path containing training data', required=True)

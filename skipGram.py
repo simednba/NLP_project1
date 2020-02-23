@@ -21,13 +21,13 @@ __authors__ = ['Hammouch Ouassim','El Hajji Mohamed','POKALA Sai Deepesh', 'de B
 __emails__  = ['ouassim.hammouch@student.ecp.fr', 'mohamed.el-hajji@student.ecp.fr','saideepesh.pokala@student-cs.fr','philibert.de-broglie@student-cs.fr']
 
 
-def text2sentences(sentences):
+def text2sentences(path):
     """
     extract the sentences in the path and preprocess them
 
     Parameters
     ----------
-    sentences : Path of sentences, str
+    path : Path of sentences, str
         
 
     Returns
@@ -35,8 +35,10 @@ def text2sentences(sentences):
     processed_sentences : List
         A list with preprocessed sentences split in tokens
     """
+    with open(path, encoding="utf8") as f:
+        sentences = f.readlines()
+    sentences = [sentence.rstrip("\n") for sentence in sentences]
 	#spacy_nlp = spacy.load("en_core_web_sm")
-	processed_sentences = []
 	for sentence in sentences:
 		sentence = re.sub(r'[^a-zA-Z_\s\']+', '', sentence) # remove special characters, numbers
 		sentence = [s for s in sentence.lower().replace("'", " ").split() if s not in stop_words]
@@ -47,18 +49,6 @@ def text2sentences(sentences):
 		#string_tokens = [token.lemma_ for token in spacy_tokens if not token.is_punct if not token.is_stop if not token.pos_ == 'NUM']
 		#processed_sentences.append(string_tokens)
 	return processed_sentences
-
-    with open(path, encoding="utf8") as f:
-        sentences = f.readlines()
-    sentences = [sentence.rstrip("\n") for sentence in sentences]
-
-    processed_sentences = []
-    for sentence in sentences:
-        sentence = re.sub(r'[^a-zA-Z_\s\']+', '', sentence) # remove special characters, numbers
-        sentence = [s for s in sentence.lower().replace("'", " ").split() if s not in stop_words]
-        processed_sentences.append(sentence) #all lowercase, replace ' with a space and split at each word
-
-    return processed_sentences
 
 def loadPairs(path):
     data = pd.read_csv(path, delimiter='\t')
@@ -88,8 +78,6 @@ def create_w2id_map(sentences):
 				w2id[token]=id
 				id +=1
 	return w2id
-
-self = SkipGram()
 
 class SkipGram:
     def __init__(self, sentences, nEmbed=100, negativeRate=5, winSize = 5, minCount = 5, lr = 0.05, clip_value = 10, display_rate = 100):

@@ -93,7 +93,6 @@ class SkipGram:
 		return proba, embedding, pred
 
 	def train(self):
-		#TODO : cycle throught each epoch
 		for counter, sentence in enumerate(self.trainset):
 			self.trainWords += 1
 			sentence = list(filter(lambda word: word in self.vocab, sentence))
@@ -110,25 +109,23 @@ class SkipGram:
 					negativeIds = self.sample({wIdx, ctxtId})
 					self.trainWord(wIdx, ctxtId, negativeIds)
 					# print(f"Trained ({word},{context_word})")
-					#self.trainWords += 1
+					self.trainWords += 1
 
 			if counter % self.display_rate == 0:
 				print (' > training %d of %d' % (counter, len(self.trainset)))
-				# self.loss.append(self.accLoss / self.trainWords)
+				self.loss.append(self.accLoss / self.trainWords)
 				self.norms["W"].append(np.linalg.norm(self.W))
-				self.norms["C"].append(np.linalg.norm(self.C))
-
+                self.norms["C"].append(np.linalg.norm(self.C))
+                self.trainWords = 0
+				self.accLoss = 0.
 				# man = sg.W[:, sg.w2id["man"]]
 				# woman = sg.W[:, sg.w2id["woman"]]
 				# king = sg.W[:, sg.w2id["king"]]
 				# queen = sg.W[:, sg.w2id["queen"]]
-				cosine = 0
+				#cosine = 0
 				# cosine = np.dot((man - woman), (king - queen)) / (np.linalg.norm(man - woman) * np.linalg.norm(king - queen))
-				print(self.trainWords)
-				print(f"Loss : {self.accLoss / self.trainWords} | cosine : {cosine}")
-
-				self.trainWords = 0
-				self.accLoss = 0.
+				#print(self.trainWords)
+				#print(f"Loss : {self.accLoss / self.trainWords} | cosine : {cosine}")
 
 				# Save regularly in case the code crashes
 				#save_path = f"./train_{counter}"
@@ -205,7 +202,7 @@ class SkipGram:
 	@staticmethod
 	def load(path):
 		with open(path, "rb") as f:
-			W = pkl.load(f)
+			self.W = pkl.load(f)
 		print(f"Loaded model from {path} successfully")
 
 

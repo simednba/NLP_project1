@@ -10,10 +10,10 @@ After going through a few papers and trying out various codes, here is how we im
 
 ## Default parameters
 Here as the default paramters you will find when launching the training:
-- Window Size= 5
+- Window Size= 2
 - Embeddings size = 100
-- Number of Negative Samples per Positive Sample = 5
-- Learning rate = 5e-2
+- Number of Negative Samples per Positive Sample = 4
+- Learning rate = 5e-4
 
 ## Task pipeline
 

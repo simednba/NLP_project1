@@ -67,5 +67,10 @@ With those derivates the SGD can be applied as follow with stepsize  α :
 
 During the training of each target word, for every context word, our skipGram model samples negatives words and gets the derivatives shown above to compute gradient descent. From there, it changes the weigth matrices W and C and then compute the loss.
  
- 
+
+## Bibliography
+
+For this exercise, we read and used the following sources: 
+
+-http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/
  

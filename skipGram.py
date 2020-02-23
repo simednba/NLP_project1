@@ -203,9 +203,6 @@ class SkipGram:
 		one_hot[word_index] = 1
 		return one_hot
 
-    def trainWord(self, target_id, context_id, neg_ids):
-        self.loss = 0
-        dw = 0
 
 	def trainWord(self, target_id, context_id, neg_ids):
         """
@@ -271,6 +268,15 @@ class SkipGram:
 			pkl.dump(self.W, f)
 		print(f"Saved model to {path} successfully")
 
+        
+
+	def similarity(self,word1,word2):
+		"""
+		computes similiarity between the two words. unknown words are mapped to one common vector
+		:param word1: str
+		:param word2: str
+		:return: a float \in [0,1] indicating the similarity (the higher the more similar)
+		"""
         try:
             #word1_emb = final_dict[word1]
             id_1, id_2 = self.w2id[word1], self.w2id[word2]
@@ -281,22 +287,6 @@ class SkipGram:
             #word2_emb = final_dict[word2]
         except KeyError:
             return -1
-
-	def similarity(self,word1,word2):
-		"""
-		computes similiarity between the two words. unknown words are mapped to one common vector
-		:param word1: str
-		:param word2: str
-		:return: a float \in [0,1] indicating the similarity (the higher the more similar)
-		"""
-
-    @staticmethod
-    def load(path):
-        with open(path, "rb") as f:
-            self.W = pkl.load(f)
-        print(f"Loaded model from {path} successfully")
-
-
 	
 	def load(self,path):
         """
@@ -325,7 +315,6 @@ class SkipGram:
 
     if not opts.test:
         sentences = text2sentences(opts.text)
-
         # path = "C:\\Users\\User\Documents\GitHub\\NLP_project1\dataset\\training-monolingual.tokenized.shuffled\\news.en-00001-of-00100"
         # path_test = "C:\\Users\\User\Documents\GitHub\\NLP_project1\dataset\heldout-monolingual.tokenized.shuffled\\news.en-00001-of-00050"
         # path_test = "C:\\Users\\User\Documents\GitHub\\NLP_project1\dataset\heldout-monolingual.tokenized.shuffled\\news.en.heldout-00001-of-00050"

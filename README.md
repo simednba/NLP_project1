@@ -1,6 +1,5 @@
 # Assignment 1 - SkipGram Implementation with Negative Sampling
 
-### Authors: Hammouch Ouassim, El Hajji Mohamed, POKALA Sai Deepesh, de BROGLIE Philibert
 
 This exercise, is an attempt to generate word embeddings by implementing the skipGram model with Negative-Sampling. SkipGram is one of the two algorithms cited in the Word2vec paper, used to learn such word embeddings. SkipGram, essentially, is a fully connected neural-network with one layer that takes in a word as input and predicts the most probable context words for that input word. 
 However, the end use of this network will not be done this way! So, the final goal is to force the model to learn a representation of each word (represented by the value of the neurons of the hidden layer), and then use this representation for other tasks.
